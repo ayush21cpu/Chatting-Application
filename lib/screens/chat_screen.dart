@@ -5,6 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+var loggedInUser;
+late bool isMe;
+var sender;
+
+
 class ChatScreen extends StatefulWidget {
   static const String id='chat_screen';
   const ChatScreen({super.key});
@@ -16,7 +21,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   var msg=TextEditingController();
   final _auth = FirebaseAuth.instance;
-  var loggedInUser;
+
 
   @override
   void initState(){
@@ -54,7 +59,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   }
 
-
+void getYourMsg(){
+    if(loggedInUser.email==sender){
+      isMe=true;
+    }else{
+      isMe=false;
+    }
+}
 
 
 
@@ -64,7 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       appBar: AppBar(
         actions: [
-        IconButton(icon: const Icon(Icons.close),
+        IconButton(icon: const Icon(Icons.logout),
           onPressed: (){
           FirebaseAuth.instance.signOut();
           Navigator.pushNamed(context, WelcomeScreen.id);
@@ -76,10 +87,12 @@ class _ChatScreenState extends State<ChatScreen> {
         ),centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(15.0),
         child:  Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,///2222222
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment:CrossAxisAlignment.stretch,
+
+
           children: [
 
             Expanded(
@@ -87,20 +100,56 @@ class _ChatScreenState extends State<ChatScreen> {
                if(ss.connectionState==ConnectionState.active) {
                  if (ss.hasData) {
                    var messages = ss.data!.docs;
-                  return ListView.builder(
-                    reverse: true,
-                      itemCount: messages.length,
-                      itemBuilder: (context,index){
-                    return ListTile(
-                      // leading: CircleAvatar(
-                      //   child: Text("${index+1}",),
-                      // ),
-                      title: Text("${ss.data!.docs[index]['sender']}",style: const TextStyle(color: Colors.white38),),
-                      subtitle: Text("${ss.data?.docs[index]['text']}",style: const TextStyle(color: Colors.white),),
-
-                    );
-                  });
-              
+                   return ListView.builder(
+                     reverse: true,
+                     itemCount: messages.length,
+                     itemBuilder: (context, index) {
+                       var message = messages[index];
+                       var sender = message['sender'];
+                       bool isMe = loggedInUser.email == sender;
+                       return Padding(
+                         padding: const EdgeInsets.all(9.0),
+                         child: Column(
+                           crossAxisAlignment:
+                           isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                           children: [
+                             Column(
+                               crossAxisAlignment: isMe
+                                   ? CrossAxisAlignment.end
+                                   : CrossAxisAlignment.start,
+                               children: [
+                                 Text(
+                                   sender,
+                                   style: const TextStyle(color: Colors.white38,fontSize: 10),
+                                 ),
+                                 Material(
+                                   color: isMe ? Colors.blueAccent : Colors.lightBlueAccent,
+                                   borderRadius: isMe
+                                       ? const BorderRadius.only(
+                                       topLeft: Radius.circular(9),
+                                       bottomRight: Radius.circular(9),
+                                       bottomLeft: Radius.circular(9))
+                                       : const BorderRadius.only(
+                                       topRight: Radius.circular(9),
+                                       bottomRight: Radius.circular(9),
+                                       bottomLeft: Radius.circular(9)),
+                                   elevation: 5,
+                                   shadowColor: Colors.white,
+                                   child: Padding(
+                                     padding: const EdgeInsets.symmetric(vertical: 10.0,horizontal: 30),
+                                     child: Text(
+                                       message['text'],
+                                       style: const TextStyle(color: Colors.white),
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ],
+                         ),
+                       );
+                     },
+                   );
                  }else if(ss.hasError){
                    return Center(child: Text(ss.hasError.toString(),),);
                  }else{
@@ -128,7 +177,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                const SizedBox(width: 9,),
-               ElevatedButton(
+               IconButton(
                   style: const ButtonStyle(
                     backgroundColor: MaterialStatePropertyAll(Colors.blueAccent),
                   ),
@@ -140,7 +189,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     });
                     msg.clear();
                   },
-                  child: const Text("Send",style: TextStyle(color: Colors.white,),))
+                  icon: const Icon(Icons.send),),
                       ],
                     ),
             ),
