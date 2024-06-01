@@ -2,6 +2,8 @@
 
 A new Flutter project for chatting
 
+A real-time chat application built with Flutter and Firebase, featuring user authentication, profile management. This app leverages Firebase Authentication for secure login and registration, Cloud Firestore for real-time message synchronization, and Cloud Storage.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
